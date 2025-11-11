@@ -1,0 +1,45 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('ordersheets', function (Blueprint $table) {
+            $table->id();
+            $table->string('Order_code')->nullable()->index();
+            $table->string('Buyer')->nullable();
+            $table->string('PO')->nullable();
+            $table->string('Style')->nullable();
+            $table->string('Qty_order')->nullable();
+            $table->decimal('Carton_weight_std', 8, 2)->nullable();
+            $table->decimal('Pcs_weight_std', 8, 2)->nullable();
+            $table->integer('PCS')->nullable();
+            $table->integer('Ctn')->nullable();
+            $table->integer('Less_Ctn')->nullable();
+            $table->integer('Pcs_Less_Ctn')->nullable();
+            $table->date('Gac_date')->nullable();
+            $table->string('Destination')->nullable();
+            $table->string('Inspector')->nullable();
+            $table->string('OPT_QC_TIMBANGAN')->nullable();
+            $table->string('SPV_QC')->nullable();
+            $table->string('CHIEF_FINISH_GOOD')->nullable();
+            $table->string('status')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('ordersheets');
+    }
+};
