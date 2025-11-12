@@ -19,41 +19,43 @@ class WeightController extends Controller
     {
         $id = $request->input('id');
         Log::info('Set current ID', ['id' => $id]);
+
         if (!$id) {
-            return response()->json(['success' => false, 'message' => 'ID tidak valid']);
+            return response()->json([
+                'success' => false,
+                'message' => 'ID tidak valid'
+            ]);
         }
 
+        // Hapus semua cache berat lama sebelum set ID baru
+        $oldId = Cache::get('current_id');
+        if ($oldId && $oldId !== $id) {
+            Cache::forget("weight_preview_{$oldId}");
+            Cache::forget("timbang_preview_{$oldId}");
+            Log::info("Cache berat untuk ID lama {$oldId} dihapus.");
+        }
+
+        // Set ID baru ke cache
         Cache::put('current_id', $id, now()->addMinutes(5));
-        return response()->json(['success' => true, 'current_id' => $id]);
+
+        // Reset berat ID baru ke 0
+        Cache::put("weight_preview_{$id}", 0, now()->addMinutes(10));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'ID aktif diubah',
+            'current_id' => $id
+        ]);
     }
 
     public function cekIdAktif()
     {
         $id = Cache::get('current_id');
-        return response()->json(['current_id' => $id]);
+
+        return response()->json([
+            'current_id' => $id
+        ]);
     }
-
-    // public function terimaBerat(Request $request)
-    // {
-    //     $id = $request->id;
-    //     $berat = $request->berat;
-
-    //     if (!$id || $berat === null) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'Data tidak lengkap'
-    //         ], 400);
-    //     }
-
-    //     // GUNAKAN CACHE, BUKAN SESSION!
-    //     Cache::put("weight_preview_{$id}", $berat, now()->addMinutes(10));
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Berat diterima',
-    //         'berat' => $berat
-    //     ]);
-    // }
 
     public function terimaBerat(Request $request)
     {
@@ -67,7 +69,7 @@ class WeightController extends Controller
             ], 400);
         }
 
-        // CACHE KEY KONSISTEN
+        // Simpan berat sementara ke cache
         Cache::put("weight_preview_{$id}", $berat, now()->addMinutes(10));
 
         return response()->json([
@@ -79,57 +81,35 @@ class WeightController extends Controller
 
     public function getPreview($id)
     {
-        $berat = Cache::get("weight_preview_{$id}");
-
-        // Fallback: ambil dari riwayat jika cache kosong
-        if ($berat === null) {
-            $last = Timbangan_riwayat::where('id', $id)
-                ->orderBy('created_at', 'desc')
-                ->first();
-            $berat = $last?->berat ?? 0;
-        }
+        $berat = Cache::get("weight_preview_{$id}", 0);
 
         return response()->json([
             'success' => true,
-            'berat' => is_numeric($berat) ? floatval($berat) : 0
+            'berat' => $berat
         ]);
     }
-
-    // public function getPreview($id)
-    // {
-    //     // AMBIL DARI CACHE, BUKAN SESSION!
-    //     $berat = Cache::get("weight_preview_{$id}", 0);
-
-    //     // Log::info("Preview requested for ID: {$id}, Berat: {$berat}");
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'berat' => $berat
-    //     ]);
-    // }
 
     public function preview(Request $request)
     {
         $id = $request->id;
         $berat = $request->berat;
 
-        if (!$id || !$berat) {
-            return response()->json(['success' => false, 'message' => 'Data tidak lengkap'], 400);
+        if (!$id || $berat === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak lengkap'
+            ], 400);
         }
 
-        $key = 'timbang_preview_' . $id;
+        $key = "timbang_preview_{$id}";
 
-        // Simpan ke cache untuk sementara (5 menit)
-        Cache::put($key, ['berat' => $berat], 300);
+        // Simpan sementara ke cache (5 menit)
+        Cache::put($key, ['berat' => $berat], now()->addMinutes(7));
 
-        // Simpan juga ke tabel riwayat
-        Timbangan_riwayat::create([
-            'id' => $id,
-            'berat'  => $berat,
-            'tanggal' => now(),
+        return response()->json([
+            'success' => true,
+            'message' => 'Berat disimpan ke riwayat'
         ]);
-
-        return response()->json(['success' => true]);
     }
 
     public function getRiwayat()

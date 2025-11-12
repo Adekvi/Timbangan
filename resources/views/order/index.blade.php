@@ -77,6 +77,8 @@
 
                     <nav id="pagination" class="d-flex justify-content-center mt-3"></nav>
 
+                    <hr>
+
                     <!-- Carton Weight Report -->
                     <div class="judul">
                         <h5 class="fw-bold text-center mb-3">Carton Weight Report - <span>Laporan Timbangan
@@ -408,7 +410,7 @@
                                             <div class="form-group mb-3">
                                                 <label for="no_box" class="fw-semibold">No. Carton</label>
                                                 <input type="text" class="form-control mt-2 mb-2" name="no_box"
-                                                    id="no_box" placeholder="No. Carton (A001)">
+                                                    id="no_box" placeholder="No. Carton (A001)" required>
                                             </div>
                                             <div class="row">
                                                 <div class="col-md-6">
@@ -417,7 +419,7 @@
                                                             Batas Beban Minimal</label>
                                                         <input type="number" class="form-control mt-2"
                                                             name="rasio_batas_beban_min" id="rasio_batas_beban_min"
-                                                            placeholder="0">
+                                                            placeholder="0" required>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
@@ -426,7 +428,7 @@
                                                             Batas Beban Maksimal</label>
                                                         <input type="number" class="form-control mt-2"
                                                             name="rasio_batas_beban_max" id="rasio_batas_beban_max"
-                                                            placeholder="0">
+                                                            placeholder="0" required>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-12">
@@ -440,7 +442,7 @@
                                                             <input type="text"
                                                                 class="form-control mt-2 text-center bg-white"
                                                                 name="lost_weight" id="lost_weight" readonly
-                                                                placeholder="1.30 kg (0.448)">
+                                                                placeholder="0 kg (0.00)">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -453,14 +455,10 @@
                                             </div>
                                             <div class="text-center p-3 bg-light rounded border">
                                                 <h4 id="currentWeight" class="text-primary fw-bold">0.00</h4>
-                                                <p class="text-muted mb-0 small">Berat terakhir</p>
-                                                <small class="text-warning d-block mt-1" id="previewStatus">Menunggu
+                                                <p class="text-muted mb-0 small fw-bold">Berat barang</p>
+                                                <small class="text-warning d-block mt-1 fw-bold"
+                                                    id="previewStatus">Menunggu
                                                     data...</small>
-                                            </div>
-                                            <div class="mt-3 text-center">
-                                                <button id="btnSimpanTimbang" class="btn btn-success btn-sm" disabled>
-                                                    <i class="fa-solid fa-floppy-disk"></i> Simpan
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -470,6 +468,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button id="btnSimpanTimbang" class="btn btn-success" disabled>
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fa-solid fa-circle-xmark"></i> Tutup
                     </button>
@@ -564,7 +565,6 @@
             let currentId = null;
             let pollingInterval = null;
             let latestPreview = null;
-            let previewAbortController = null;
 
             const searchBtn = document.getElementById('searchBtn');
             const spinner = document.getElementById('loadingSpinner');
@@ -683,7 +683,7 @@
 
                     currentId = item.id;
 
-                    // === ISI SEMUA FIELD TERMASUK RASIO ===
+                    // === ISI FIELD ===
                     const fields = {
                         info_buyer: 'Buyer',
                         info_order_code: 'Order_code',
@@ -700,7 +700,6 @@
                         info_FinalDestination: 'FinalDestination',
                     };
 
-                    // Isi field biasa
                     Object.keys(fields).forEach(id => {
                         const el = document.getElementById(id);
                         const key = fields[id];
@@ -713,46 +712,85 @@
                         }
                     });
 
-                    // === ISI RASIO MIN & MAX DARI DATA ===
                     const minEl = document.getElementById('rasio_batas_beban_min');
                     const maxEl = document.getElementById('rasio_batas_beban_max');
                     const lostEl = document.getElementById('lost_weight');
-
                     if (minEl) minEl.value = item.rasio_min ?? '';
                     if (maxEl) maxEl.value = item.rasio_max ?? '';
-                    if (lostEl) lostEl.value = ''; // Kosongkan lost weight dulu
+                    if (lostEl) lostEl.value = '';
 
-                    // Reset preview
                     resetPreviewUI();
 
-                    // Buka modal
+                    // === Siapkan modal ===
                     const modalElement = document.getElementById('timbangModal');
                     const modal = new bootstrap.Modal(modalElement);
-                    modal.show();
 
-                    // Set ID ke server + mulai polling
-                    try {
-                        await fetch('/api/timbang/set-id', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                            body: JSON.stringify({
-                                id: currentId
-                            })
-                        });
-                    } catch (err) {}
+                    // Hentikan polling saat modal ditutup
+                    modalElement.addEventListener('hidden.bs.modal', stopPolling, {
+                        once: true
+                    });
 
-                    modalElement.addEventListener('shown.bs.modal', () => {
-                        startPolling(); // hanya berat
-                        loadRiwayat(); // riwayat hanya sekali
+                    // Jalankan setelah modal benar-benar terbuka
+                    modalElement.addEventListener('shown.bs.modal', async () => {
+                        try {
+                            // Set ID aktif di server
+                            await fetch('/api/timbang/set-id', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector(
+                                        'meta[name="csrf-token"]').content
+                                },
+                                body: JSON.stringify({
+                                    id: currentId
+                                })
+                            });
+                        } catch (err) {
+                            console.warn('Gagal set-id:', err);
+                        }
+
+                        // Jalankan langsung polling pertama tanpa delay
+                        await loadPreview();
+                        await loadRiwayat();
                         hitungLossWeight();
+
+                        // Baru setelah itu, mulai interval polling
+                        startPolling();
                     }, {
                         once: true
                     });
+
+                    modal.show();
                 }
             });
+
+            // ==== POLLING SYSTEM ====
+            function startPolling() {
+                stopPolling();
+                pollingInterval = setInterval(() => {
+                    loadPreview();
+                    loadRiwayat();
+                }, 1000); // beri jeda 1,5 detik agar server tidak overload
+            }
+
+            function stopPolling() {
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+
+            // ==== RESET UI ====
+            function resetPreviewUI() {
+                document.getElementById('currentWeight').textContent = '0.00 kg';
+                const status = document.getElementById('previewStatus');
+                status.textContent = 'Menunggu timbangan...';
+                status.className = 'text-warning';
+                status.style.fontWeight = 'bold'; // ← Tambahan untuk teks tebal
+                document.getElementById('lost_weight').value = '';
+                btnSimpan.disabled = true;
+                latestPreview = null;
+            }
 
             // === FUNGSI BANTU: FORMAT TANGGAL UNTUK <input type="date"> ===
             function formatDateForInput(dateStr) {
@@ -767,32 +805,50 @@
 
             // === LOAD PREVIEW TIMBANGAN ===
             async function loadPreview() {
-                if (!currentId) return;
-
-                if (previewAbortController) {
-                    previewAbortController.abort(); // batalkan request sebelumnya
+                if (!currentId) {
+                    console.warn('currentId belum ada, skip polling');
+                    return;
                 }
-                previewAbortController = new AbortController();
-                const signal = previewAbortController.signal;
 
                 try {
-                    const res = await fetch(`/api/timbang/preview/${currentId}`, {
-                        signal
+                    const url = `/api/timbang/preview/${currentId}`;
+                    console.log('Polling:', url); // DEBUG
+
+                    const res = await fetch(url, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
                     });
-                    if (!res.ok) return;
+
+                    if (!res.ok) {
+                        console.error('HTTP Error:', res.status);
+                        return;
+                    }
 
                     const json = await res.json();
-                    if (!json.success) return;
+                    console.log('Response preview:', json); // DEBUG
+
+                    if (!json.success) {
+                        console.warn('Preview gagal:', json);
+                        return;
+                    }
 
                     const berat = parseFloat(json.berat) || 0;
                     const weightEl = document.getElementById('currentWeight');
-                    const statusEl = document.getElementById('previewStatus');
                     const newText = `${berat.toFixed(2)} kg`;
 
                     if (weightEl.textContent !== newText) {
                         weightEl.textContent = newText;
+                        weightEl.style.transition = 'all 0.3s ease';
+                        weightEl.style.transform = 'scale(1.15)';
+                        weightEl.style.color = '#ff4500';
+                        setTimeout(() => {
+                            weightEl.style.transform = 'scale(1)';
+                            weightEl.style.color = '#0d6efd';
+                        }, 300);
                     }
 
+                    const statusEl = document.getElementById('previewStatus');
                     if (berat < 0.05) {
                         statusEl.textContent = 'Timbangan kosong';
                         statusEl.className = 'text-muted';
@@ -808,7 +864,7 @@
                     hitungLossWeight();
 
                 } catch (err) {
-                    if (err.name !== 'AbortError') console.error('Error loadPreview:', err);
+                    console.error('Error loadPreview:', err);
                 }
             }
 
@@ -909,31 +965,6 @@
                 } catch (err) {
                     console.warn('Gagal load riwayat:', err);
                 }
-            }
-
-            // === RESET, POLLING, SIMPAN ===
-            function resetPreviewUI() {
-                document.getElementById('currentWeight').textContent = '0.00 kg';
-                document.getElementById('previewStatus').textContent = 'Menunggu timbangan...';
-                document.getElementById('previewStatus').className = 'text-warning';
-                document.getElementById('lost_weight').value = '';
-                btnSimpan.disabled = true;
-                btnSimpan.innerHTML = 'Simpan';
-                latestPreview = null;
-            }
-
-            function startPolling() {
-                stopPolling();
-
-                // Load pertama langsung tanpa tunggu 800ms
-                loadPreview();
-
-                // Interval lebih ringan, misal 1000 ms
-                pollingInterval = setInterval(loadPreview, 1000);
-            }
-
-            function stopPolling() {
-                if (pollingInterval) clearInterval(pollingInterval);
             }
 
             btnSimpan.addEventListener('click', async () => {
