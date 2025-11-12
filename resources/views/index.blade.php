@@ -2,8 +2,10 @@
 
     <div class="page-heading d-flex justify-content-between align-items-center">
         <div>
-            <h3>Dashboard Admin</h3>
-            <h5 class="welcome-message">Selamat Datang</h5>
+            <h3>Dashboard</h3>
+            <h5 class="welcome-message">Selamat Datang,
+                <span class="text-warning">{{ Auth::user()->username ?? '-' }}</span>
+            </h5>
         </div>
 
         {{-- Bagian waktu di sebelah kanan --}}

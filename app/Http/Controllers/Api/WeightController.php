@@ -56,7 +56,7 @@ class WeightController extends Controller
             'current_id' => $id
         ]);
     }
-
+    
     public function terimaBerat(Request $request)
     {
         $id = $request->id;
@@ -69,7 +69,6 @@ class WeightController extends Controller
             ], 400);
         }
 
-        // Simpan berat sementara ke cache
         Cache::put("weight_preview_{$id}", $berat, now()->addMinutes(10));
 
         return response()->json([
@@ -103,7 +102,6 @@ class WeightController extends Controller
 
         $key = "timbang_preview_{$id}";
 
-        // Simpan sementara ke cache (5 menit)
         Cache::put($key, ['berat' => $berat], now()->addMinutes(7));
 
         return response()->json([
