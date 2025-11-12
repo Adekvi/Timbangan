@@ -112,27 +112,19 @@ class WeightController extends Controller
         ]);
     }
 
-    public function getRiwayat()
-    {
-        $records = Timbangan_riwayat::latest()->take(20)->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $records,
-        ]);
-    }
-
     public function simpan(Request $request)
     {
         $request->validate([
             'Order_code' => 'required|string',
             'Buyer'      => 'required|string',
-            'berat'      => 'nullable|numeric|min:0',
+            'berat'      => 'required|numeric|min:0',
+            'no_box'      => 'required',
+            'rasio_batas_beban_min' => 'required|numeric',
+            'rasio_batas_beban_max' => 'required|numeric'
         ]);
 
         DB::beginTransaction();
         try {
-            // 1. Simpan / update Ordersheet
             $ordersheet = Ordersheet::updateOrCreate(
                 ['Order_code' => $request->Order_code],
                 [
@@ -159,7 +151,6 @@ class WeightController extends Controller
             // 2. Ambil berat
             $berat = $request->filled('berat') ? floatval($request->berat) : 0.00;
 
-            // 3. Simpan riwayat timbangan
             Timbangan_riwayat::create([
                 'id_ordersheet'              => $ordersheet->id,
                 'berat'                      => $berat,
@@ -170,7 +161,6 @@ class WeightController extends Controller
                 'waktu_timbang'              => now(),
             ]);
 
-            // 4. Simpan ke view table (jika memang pakai model)
             VAllOrdersheetPlusCari::updateOrCreate(
                 ['Order_code' => $request->Order_code],
                 [
@@ -203,5 +193,15 @@ class WeightController extends Controller
                 'message' => 'Gagal menyimpan data: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getRiwayat()
+    {
+        $records = Timbangan_riwayat::latest()->take(20)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $records,
+        ]);
     }
 }

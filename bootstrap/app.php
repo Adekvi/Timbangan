@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\Role::class,
         ]);
+        $middleware->append(\App\Http\Middleware\ObfuscateHtmlMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

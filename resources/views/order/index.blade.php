@@ -76,9 +76,11 @@
                     </div>
 
                     <nav id="pagination" class="d-flex justify-content-center mt-3"></nav>
+                </div>
+            </div>
 
-                    <hr>
-
+            <div class="card report">
+                <div class="card-body">
                     <!-- Carton Weight Report -->
                     <div class="judul">
                         <h5 class="fw-bold text-center mb-3">Carton Weight Report - <span>Laporan Timbangan
@@ -95,7 +97,7 @@
                     <div class="cetak">
                         @if ($groupedOrders->isEmpty())
                             <div class="alert alert-info text-center">
-                                Belum Ada Data
+                                <i class="fas fa-file"></i> Belum Ada Data
                             </div>
                         @else
                             @foreach ($groupedOrders as $groupKey => $orders)
@@ -192,75 +194,72 @@
                             @endforeach
                         @endif
                     </div>
-
                 </div>
             </div>
         </section>
     </div>
 
-    {{-- MODAL DETAIL & RIWAYAT TIMBANGAN --}}
-    <div class="modal fade" id="timbangModal" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal fade" id="timbangModal" tabindex="-1" aria-labelledby="timbangModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+            <!-- Responsive fullscreen di HP -->
             <div class="modal-content">
                 <div class="modal-header text-dark">
-                    <h5 class="modal-title">Detail Ordersheet & Laporan</h5>
-                    <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="timbangModalLabel">Detail Ordersheet & Laporan</h5>
+                    <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="card">
-                        <div class="card-body">
+
+                <div class="modal-body p-3 p-md-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-3 p-md-4">
                             <form id="formOrdersheet" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <input type="hidden" id="info_id" name="id">
                                 <input type="hidden" name="berat" id="hiddenBerat" value="0">
-                                <h5 class="fw-bold mb-3">Informasi Ordersheet</h5>
-                                <hr>
-                                <div class="ordersheet">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered align-middle mb-0">
+
+                                <!-- ==== BAGIAN INFORMASI ORDERSHEET ==== -->
+                                <h5 class="fw-bold mb-3 text-primary">Informasi Ordersheet</h5>
+                                <hr class="my-3">
+
+                                <div class="row g-3">
+                                    <!-- KOLOM KIRI -->
+                                    <div class="col-12 col-lg-6">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-sm align-middle mb-0">
+                                                <tbody>
                                                     <tr>
-                                                        <th width="160">BUYER</th>
-                                                        <td>
-                                                            <input type="text" id="info_buyer" name="Buyer"
-                                                                class="form-control">
+                                                        <th width="40%" class="bg-light">BUYER</th>
+                                                        <td><input type="text" id="info_buyer" name="Buyer"
+                                                                class="form-control form-control-sm"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="bg-light">Order No.</th>
+                                                        <td><input type="text" id="info_order_code"
+                                                                name="Order_code" class="form-control form-control-sm"
+                                                                readonly></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="bg-light">PO#</th>
+                                                        <td><input type="text" id="info_purchaseordernumber"
+                                                                name="PO" class="form-control form-control-sm">
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Order No.</th>
-                                                        <td>
-                                                            <input type="text" id="info_order_code"
-                                                                name="Order_code" class="form-control" readonly>
-                                                        </td>
+                                                        <th class="bg-light">Style</th>
+                                                        <td><input type="text" id="info_style" name="Style"
+                                                                class="form-control form-control-sm"></td>
                                                     </tr>
                                                     <tr>
-                                                        <th>PO#</th>
-                                                        <td>
-                                                            <input type="text" id="info_purchaseordernumber"
-                                                                name="PO" class="form-control">
-                                                        </td>
+                                                        <th class="bg-light">Qty Order</th>
+                                                        <td><input type="number" id="info_qty_order"
+                                                                name="Qty_order" class="form-control form-control-sm"
+                                                                placeholder="0"></td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Style</th>
-                                                        <td>
-                                                            <input type="text" id="info_style" name="Style"
-                                                                class="form-control">
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Qty Order</th>
-                                                        <td>
-                                                            <input type="number" id="info_qty_order"
-                                                                name="Qty_order" class="form-control"
-                                                                placeholder="0">
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th></th>
+                                                        <th class="bg-light"></th>
                                                         <td>
                                                             <div class="row g-2">
-                                                                <div class="col">
+                                                                <div class="col-6">
                                                                     <div class="input-group input-group-sm">
                                                                         <span class="input-group-text">Pcs</span>
                                                                         <input type="number" id="info_pcs"
@@ -268,7 +267,7 @@
                                                                             placeholder="0">
                                                                     </div>
                                                                 </div>
-                                                                <div class="col">
+                                                                <div class="col-6">
                                                                     <div class="input-group input-group-sm">
                                                                         <span class="input-group-text">Ctn</span>
                                                                         <input type="number" id="info_ctn"
@@ -280,10 +279,10 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th></th>
+                                                        <th class="bg-light"></th>
                                                         <td>
                                                             <div class="row g-2">
-                                                                <div class="col">
+                                                                <div class="col-6">
                                                                     <div class="input-group input-group-sm">
                                                                         <span class="input-group-text">Less Ctn</span>
                                                                         <input type="number" id="info_less_ctn"
@@ -291,7 +290,7 @@
                                                                             placeholder="0">
                                                                     </div>
                                                                 </div>
-                                                                <div class="col">
+                                                                <div class="col-6">
                                                                     <div class="input-group input-group-sm">
                                                                         <span class="input-group-text">Pcs Less</span>
                                                                         <input type="number" id="info_pcs_less_ctn"
@@ -302,163 +301,167 @@
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                    <!-- BARIS 7: CARTON & PCS WEIGHT STD -->
                                                     <tr>
-                                                        <th>Carton Weight Std.</th>
-                                                        <td>
-                                                            <input type="text" id="info_carton_weight"
-                                                                name="Carton_weight_std" class="form-control">
-                                                        </td>
+                                                        <th class="bg-light">Carton Weight Std.</th>
+                                                        <td><input type="text" id="info_carton_weight"
+                                                                name="Carton_weight_std"
+                                                                class="form-control form-control-sm"></td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Pcs Weight Std.</th>
-                                                        <td>
-                                                            <input type="text" id="info_pcs_weight"
-                                                                name="Pcs_weight_std" class="form-control">
-                                                        </td>
+                                                        <th class="bg-light">Pcs Weight Std.</th>
+                                                        <td><input type="text" id="info_pcs_weight"
+                                                                name="Pcs_weight_std"
+                                                                class="form-control form-control-sm"></td>
                                                     </tr>
-                                                </table>
-                                            </div>
+                                                </tbody>
+                                            </table>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered align-middle mb-0">
-                                                    <tr>
-                                                        <th>GAC Date</th>
-                                                        <td>
-                                                            <input type="date" class="form-control" id="info_GAC"
-                                                                name="Gac_date">
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Destination</th>
-                                                        <td>
-                                                            <input type="text" class="form-control"
-                                                                id="info_FinalDestination" name="Destination">
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Inspector</th>
-                                                        <td>
-                                                            <input type="text" class="form-control"
-                                                                id="info_inspector" name="Inspector">
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            </div>
-                                            <hr>
-                                            <div class="table-responsive mt-4">
-                                                <table class="table table-bordered text-center align-middle"
-                                                    style="font-family: Arial, sans-serif; font-size: 13px;">
-                                                    <thead class="table-light">
-                                                        <tr>
-                                                            <th width="33%">OPT QC<br>TIMBANGAN</th>
-                                                            <th width="33%">SPV QC</th>
-                                                            <th width="34%">CHIEF FINISH<br>GOOD</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr style="height: 120px;">
-                                                            <!-- OPT QC TIMBANGAN -->
-                                                            <td class="position-relative align-bottom">
-                                                                <div class="d-flex flex-column justify-content-end align-items-center"
-                                                                    style="height:100px;">
-                                                                    <!-- Input username otomatis -->
-                                                                    <input type="text"
-                                                                        class="form-control-plaintext text-center fw-semibold user-name"
-                                                                        value="{{ Auth::user()->username ?? '-' }}"
-                                                                        style="width: 100%;" name="OPT_QC_TIMBANGAN"
-                                                                        id="OPT_QC_TIMBANGAN">
-                                                                </div>
-                                                            </td>
+                                    </div>
 
-                                                            <!-- SPV QC -->
-                                                            <td class="align-bottom">
-                                                                <div class="d-flex flex-column justify-content-end align-items-center"
-                                                                    style="height:100px;">
-                                                                    <input type="text"
-                                                                        class="form-control-plaintext text-center fw-semibold user-name"
-                                                                        name="SPV_QC" id="SPV_QC"
-                                                                        placeholder="Nama" style="width: 100%;">
-                                                                </div>
-                                                            </td>
+                                    <!-- KOLOM KANAN -->
+                                    <div class="col-12 col-lg-6">
+                                        <div class="table-responsive mb-3">
+                                            <table class="table table-bordered table-sm align-middle mb-0">
+                                                <tbody>
+                                                    <tr>
+                                                        <th width="40%" class="bg-light">GAC Date</th>
+                                                        <td><input type="date" class="form-control form-control-sm"
+                                                                id="info_GAC" name="Gac_date"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="bg-light">Destination</th>
+                                                        <td><input type="text" class="form-control form-control-sm"
+                                                                id="info_FinalDestination" name="Destination"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="bg-light">Inspector</th>
+                                                        <td><input type="text" class="form-control form-control-sm"
+                                                                id="info_inspector" name="Inspector"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
 
-                                                            <!-- CHIEF FINISH GOOD -->
-                                                            <td class="align-bottom">
-                                                                <div class="d-flex flex-column justify-content-end align-items-center"
-                                                                    style="height:100px;">
-                                                                    <input type="text"
-                                                                        class="form-control-plaintext text-center fw-semibold user-name"
-                                                                        name="CHIEF_FINISH_GOOD"
-                                                                        id="CHIEF_FINISH_GOOD" placeholder="Nama"
-                                                                        style="width: 100%;">
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                        <!-- TANDA TANGAN -->
+                                        <hr class="d-block d-lg-none my-3">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered text-center align-middle"
+                                                style="font-size: 13px;">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th class="p-2">OPT QC<br><small>TIMBANGAN</small></th>
+                                                        <th class="p-2">SPV QC</th>
+                                                        <th class="p-2">CHIEF FINISH<br><small>GOOD</small></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr style="height: 90px;">
+                                                        <td class="p-1 position-relative align-bottom">
+                                                            <input type="text"
+                                                                class="form-control-plaintext text-center fw-semibold user-name"
+                                                                value="{{ Auth::user()->username ?? '-' }}"
+                                                                name="OPT_QC_TIMBANGAN" id="OPT_QC_TIMBANGAN">
+                                                        </td>
+                                                        <td class="p-1 position-relative align-bottom">
+                                                            <input type="text"
+                                                                class="form-control-plaintext text-center fw-semibold user-name"
+                                                                name="SPV_QC" id="SPV_QC" placeholder="Nama">
+                                                        </td>
+                                                        <td class="p-1 position-relative align-bottom">
+                                                            <input type="text"
+                                                                class="form-control-plaintext text-center fw-semibold user-name"
+                                                                name="CHIEF_FINISH_GOOD" id="CHIEF_FINISH_GOOD"
+                                                                placeholder="Nama">
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
-                                <hr>
-                                <div class="timbangan mt-3">
-                                    <h5 class="fw-bold mb-3">Berat Barang & No. Carton</h5>
-                                    <hr>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group mb-3">
-                                                <label for="no_box" class="fw-semibold">No. Carton</label>
-                                                <input type="text" class="form-control mt-2 mb-2" name="no_box"
-                                                    id="no_box" placeholder="No. Carton (A001)" required>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="rasio_batas_beban_min" class="fw-semibold">Rasio
-                                                            Batas Beban Minimal</label>
-                                                        <input type="number" class="form-control mt-2"
+
+                                <!-- ==== BAGIAN TIMBANGAN ==== -->
+                                <hr class="my-4">
+                                <h5 class="fw-bold mb-3 text-primary">Berat Barang & No. Carton</h5>
+                                <hr class="mt-2 mb-3">
+
+                                <div class="row g-3 g-md-4">
+                                    <!-- KOLOM KIRI: INPUT DATA -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="card border-0 shadow-sm h-100">
+                                            <div class="card-body p-3">
+                                                <!-- No. Carton -->
+                                                <div class="mb-3">
+                                                    <label for="no_box"
+                                                        class="form-label fw-semibold small text-muted">No.
+                                                        Carton</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        name="no_box" id="no_box" placeholder="A001" required>
+                                                </div>
+
+                                                <div class="row g-2">
+                                                    <!-- Rasio Min -->
+                                                    <div class="col-6">
+                                                        <label for="rasio_batas_beban_min"
+                                                            class="form-label fw-semibold small text-muted">
+                                                            Batas Min
+                                                        </label>
+                                                        <input type="number" class="form-control form-control-sm"
                                                             name="rasio_batas_beban_min" id="rasio_batas_beban_min"
-                                                            placeholder="0" required>
+                                                            placeholder="0" step="0.01" required>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="rasio_batas_beban_max" class="fw-semibold">Rasio
-                                                            Batas Beban Maksimal</label>
-                                                        <input type="number" class="form-control mt-2"
+                                                    <!-- Rasio Max -->
+                                                    <div class="col-6">
+                                                        <label for="rasio_batas_beban_max"
+                                                            class="form-label fw-semibold small text-muted">
+                                                            Batas Max
+                                                        </label>
+                                                        <input type="number" class="form-control form-control-sm"
                                                             name="rasio_batas_beban_max" id="rasio_batas_beban_max"
-                                                            placeholder="0" required>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-12">
-                                                    <div class="d-flex justify-content-center">
-                                                        <div class="form-group mb-3"
-                                                            style="max-width: 300px; width: 100%;">
-                                                            <label for="lost_weight"
-                                                                class="fw-semibold text-center d-block">
-                                                                Rasio Lost Weight
-                                                            </label>
-                                                            <input type="text"
-                                                                class="form-control mt-2 text-center bg-white"
-                                                                name="lost_weight" id="lost_weight" readonly
-                                                                placeholder="0 kg (0.00)">
-                                                        </div>
+                                                            placeholder="0" step="0.01" required>
                                                     </div>
                                                 </div>
 
+                                                <!-- Lost Weight -->
+                                                <div class="mt-3 text-center">
+                                                    <label
+                                                        class="form-label fw-semibold text-success small d-block">Rasio
+                                                        Lost Weight</label>
+                                                    <input type="text"
+                                                        class="form-control form-control-sm text-center bg-light fw-bold"
+                                                        style="max-width: 180px; margin: 0 auto; font-size: 0.9rem;"
+                                                        name="lost_weight" id="lost_weight" readonly
+                                                        placeholder="0.00 kg">
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="alert alert-success text-center mt-3 py-2">
-                                                <strong>Timbangan aktif!</strong>
-                                            </div>
-                                            <div class="text-center p-3 bg-light rounded border">
-                                                <h4 id="currentWeight" class="text-primary fw-bold">0.00</h4>
-                                                <p class="text-muted mb-0 small fw-bold">Berat barang</p>
-                                                <small class="text-warning d-block mt-1 fw-bold"
-                                                    id="previewStatus">Menunggu
-                                                    data...</small>
+                                    </div>
+
+                                    <!-- KOLOM KANAN: DISPLAY BERAT -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="card border-0 shadow-sm h-100">
+                                            <div class="card-body p-3 text-center">
+                                                <div class="alert alert-success py-2 mb-3 small">
+                                                    <strong>Timbangan Aktif</strong>
+                                                </div>
+
+                                                <!-- Berat Real-time -->
+                                                <div class="p-3 bg-gradient rounded border shadow-sm"
+                                                    style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
+                                                    <h1 id="currentWeight" class="display-5 fw-bold text-primary mb-0"
+                                                        style="font-size: 3.5rem;">
+                                                        0.00
+                                                    </h1>
+                                                    <p class="text-muted small mb-1">kg</p>
+                                                    <small id="previewStatus"
+                                                        class="text-warning d-block fw-bold">Menunggu data...</small>
+                                                </div>
+
+                                                <!-- Tombol Stabilisasi (Opsional) -->
+                                                <div class="mt-3 d-none d-md-block">
+                                                    <small class="text-muted">Pastikan timbangan stabil sebelum
+                                                        simpan</small>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -467,11 +470,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button id="btnSimpanTimbang" class="btn btn-success" disabled>
+
+                <!-- FOOTER -->
+                <div class="modal-footer justify-content-center gap-2 flex-wrap">
+                    <button id="btnSimpanTimbang" class="btn btn-success px-4" disabled>
                         <i class="fa-solid fa-floppy-disk"></i> Simpan
                     </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
                         <i class="fa-solid fa-circle-xmark"></i> Tutup
                     </button>
                 </div>
