@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('timbangan_riwayats', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_user')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('id_device')->nullable()->constrained('devices')->onDelete('set null');
             $table->foreignId('id_ordersheet')
                 ->constrained('ordersheets')
                 ->onDelete('cascade');

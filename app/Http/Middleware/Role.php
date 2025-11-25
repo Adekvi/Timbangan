@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Update\Device;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,34 +16,42 @@ class Role
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $roles): Response
+        public function handle(Request $request, Closure $next, string $roles): Response
     {
         Log::debug('Roles received in middleware: ', [$roles]);
 
-        // Parse string roles menjadi array
         $allowedRoles = is_array($roles) ? $roles : explode(',', $roles);
         $allowedRoles = array_map('trim', $allowedRoles);
 
-        // Perlessly check if user is authenticated
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
+        // 🔥 Tambahan: sinkronisasi device aktif
+        $device = Device::where('user_id', Auth::id())
+            ->where('status', 'in_use')
+            ->first();
+
+        if ($device) {
+            session([
+                'selected_esp_id' => $device->esp_id,
+                'selected_device_name' => $device->name,
+            ]);
+        }
+
         $userRole = Auth::user()->role;
 
-        // Izinkan superadmin untuk semua aksi
         if ($userRole === 'admin') {
             return $next($request);
         }
 
-        // Periksa apakah peran pengguna ada dalam daftar peran yang diizinkan
         foreach ($allowedRoles as $role) {
             if ($userRole === $role) {
                 return $next($request);
             }
         }
 
-        // Jika peran tidak cocok, redirect ke halaman utama
         return redirect('/')->with('error', 'Akses dilarang. Anda tidak memiliki izin untuk mengakses halaman ini.');
     }
+
 }

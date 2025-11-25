@@ -73,8 +73,9 @@
                     </div>
                     <div class="card-body table-responsive">
                         <table class="table table-sm table-bordered text-center">
-                            <thead class="table-light">
+                            <thead class="table-secondary">
                                 <tr>
+                                    <th>No</th>
                                     <th>Kode</th>
                                     <th>Buyer</th>
                                     <th>PO</th>
@@ -84,6 +85,7 @@
                             <tbody>
                                 @foreach ($latestOrders as $order)
                                     <tr>
+                                        <td>{{ $loop->iteration }}</td>
                                         <td>{{ $order->Order_code }}</td>
                                         <td>{{ $order->Buyer }}</td>
                                         <td>{{ $order->PO }}</td>

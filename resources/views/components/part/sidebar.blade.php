@@ -54,6 +54,14 @@
                             </a>
                         </li>
 
+                        <li class="sidebar-title">Master</li>
+                        <li class="sidebar-item {{ request()->is('admin/view-data*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.view-data') }}" class="sidebar-link">
+                                <i class="fa-solid fa-upload"></i>
+                                <span>File Firmware ESP</span>
+                            </a>
+                        </li>
+
                         <li class="sidebar-title">Main</li>
 
                         {{-- ORDERSHEET (aktif untuk semua turunan: index, show, edit, dll) --}}
@@ -84,12 +92,12 @@
                             </a>
                         </li>
 
-                        {{-- <li class="sidebar-item {{ request()->is('user/data-order*') ? 'active' : '' }}">
-                            <a href="#" class="sidebar-link">
-                                <i class="fa-solid fa-book"></i>
-                                <span>Data Order</span>
+                        <li class="sidebar-item {{ request()->is('user/package-view*') ? 'active' : '' }}">
+                            <a href="{{ route('package.view') }}" class="sidebar-link">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                                <span>Data Package</span>
                             </a>
-                        </li> --}}
+                        </li>
                     @endif
                 @endif
 

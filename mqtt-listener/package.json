@@ -1,0 +1,19 @@
+{
+    "name": "laravel-mqtt-weight-listener",
+    "version": "1.0.0",
+    "description": "MQTT listener untuk menerima berat dari ESP32 dan menyimpan ke Redis",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "dependencies": {
+        "mqtt": "^5.10.0",
+        "redis": "^4.7.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.0"
+    },
+    "author": "Your Name",
+    "license": "MIT"
+}

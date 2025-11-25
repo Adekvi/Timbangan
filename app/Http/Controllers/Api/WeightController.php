@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Ordersheet;
 use App\Models\Timbangan_riwayat;
+use App\Models\Update\Device;
 use App\Models\VAllOrdersheetPlusCari;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -69,13 +70,16 @@ class WeightController extends Controller
             ], 400);
         }
 
-        Cache::put("weight_preview_{$id}", $berat, now()->addMinutes(10));
+        // Cache::put("weight_preview_{$id}", $berat, now()->addMinutes(10));
+        Cache::put("weight_preview_{$id}", $berat, now()->addSeconds(2));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Berat diterima',
-            'berat' => $berat
-        ]);
+        return response('OK', 200);
+
+        // return response()->json([
+        //     'success' => true,
+        //     'message' => 'Berat diterima',
+        //     'berat' => $berat
+        // ]);
     }
 
     public function getPreview($id)
@@ -116,45 +120,56 @@ class WeightController extends Controller
             'Order_code' => 'required|string',
             'Buyer'      => 'required|string',
             'berat'      => 'required|numeric|min:0',
-            'no_box'      => 'required',
+            'no_box'     => 'required',
             'rasio_batas_beban_min' => 'required|numeric',
             'rasio_batas_beban_max' => 'required|numeric'
         ]);
 
         DB::beginTransaction();
         try {
+
+            $existingOrdersheet = Ordersheet::where('Order_code', $request->Order_code)->first();
+            $existingV = VAllOrdersheetPlusCari::where('Order_code', $request->Order_code)->first();
+
+            $device = Device::where('user_id', Auth::id())
+                ->where('status', 'in_use')
+                ->first();
+
             $ordersheet = Ordersheet::updateOrCreate(
                 ['Order_code' => $request->Order_code],
                 [
-                    'Buyer'               => $request->Buyer,
-                    'PO'                  => $request->PO,
-                    'Style'               => $request->Style,
-                    'Qty_order'           => $request->Qty_order,
-                    'Carton_weight_std'   => $request->Carton_weight_std,
-                    'Pcs_weight_std'      => $request->Pcs_weight_std,
-                    'PCS'                 => $request->PCS,
-                    'Ctn'                 => $request->Ctn,
-                    'Less_Ctn'            => $request->Less_Ctn,
-                    'Pcs_Less_Ctn'        => $request->Pcs_Less_Ctn,
-                    'Gac_date'            => $request->Gac_date,
-                    'Destination'         => $request->Destination,
-                    'Inspector'           => $request->Inspector,
+                    'id_user'             => Auth::id(),
+                    'id_device'           => $device?->id,
+                    'Buyer'               => $request->Buyer ?? $existingOrdersheet?->Buyer,
+                    'PO'                  => $request->PO ?? $existingOrdersheet?->PO,
+                    'Style'               => $request->Style ?? $existingOrdersheet?->Style,
+                    'Qty_order'           => $request->Qty_order ?? $existingOrdersheet?->Qty_order,
+                    'Carton_weight_std'   => $request->Carton_weight_std ?? $existingOrdersheet?->Carton_weight_std,
+                    'Pcs_weight_std'      => $request->Pcs_weight_std ?? $existingOrdersheet?->Pcs_weight_std,
+                    'PCS'                 => $request->PCS ?? $existingOrdersheet?->PCS,
+                    'Ctn'                 => $request->Ctn ?? $existingOrdersheet?->Ctn,
+                    'Less_Ctn'            => $request->Less_Ctn ?? $existingOrdersheet?->Less_Ctn,
+                    'Pcs_Less_Ctn'        => $request->Pcs_Less_Ctn ?? $existingOrdersheet?->Pcs_Less_Ctn,
+                    'Gac_date'            => $request->Gac_date ?? $existingOrdersheet?->Gac_date,
+                    'Destination'         => $request->Destination ?? $existingOrdersheet?->Destination,
+                    'Inspector'           => $request->Inspector ?? $existingOrdersheet?->Inspector,
                     'OPT_QC_TIMBANGAN'    => $request->OPT_QC_TIMBANGAN ?? Auth::user()->username,
-                    'SPV_QC'              => $request->SPV_QC,
-                    'CHIEF_FINISH_GOOD'   => $request->CHIEF_FINISH_GOOD,
+                    'SPV_QC'              => $request->SPV_QC ?? $existingOrdersheet?->SPV_QC,
+                    'CHIEF_FINISH_GOOD'   => $request->CHIEF_FINISH_GOOD ?? $existingOrdersheet?->CHIEF_FINISH_GOOD,
                     'status'              => 'Success'
                 ]
             );
 
-            // 2. Ambil berat
-            $berat = $request->filled('berat') ? floatval($request->berat) : 0.00;
+            $berat = floatval($request->berat);
 
             Timbangan_riwayat::create([
+                'id_user'                    => Auth::id(),
+                'id_device'                  => $device?->id,
                 'id_ordersheet'              => $ordersheet->id,
                 'berat'                      => $berat,
                 'no_box'                     => $request->no_box,
-                'rasio_batas_beban_min'      => $request->rasio_batas_beban_min ?? null,
-                'rasio_batas_beban_max'      => $request->rasio_batas_beban_max ?? null,
+                'rasio_batas_beban_min'      => $request->rasio_batas_beban_min,
+                'rasio_batas_beban_max'      => $request->rasio_batas_beban_max,
                 'status'                     => 'Success',
                 'waktu_timbang'              => now(),
             ]);
@@ -162,15 +177,17 @@ class WeightController extends Controller
             VAllOrdersheetPlusCari::updateOrCreate(
                 ['Order_code' => $request->Order_code],
                 [
-                    'Buyer'               => $request->Buyer,
-                    'PurchaseOrderNumber' => $request->PO,
-                    'ProductName'         => $request->Style,
-                    'Qty'                 => $request->Qty_order,
-                    'DestinationCountry'  => $request->Destination,
-                    'GAC'                 => $request->Gac_date,
-                    'FinalDestination'    => $request->Destination,
+                    'Buyer'               => $request->Buyer ?? $existingV?->Buyer,
+                    'PurchaseOrderNumber' => $request->PO ?? $existingV?->PurchaseOrderNumber,
+                    'ProductName'         => $request->Style ?? $existingV?->ProductName,
+                    'Qty'                 => $request->Qty_order ?? $existingV?->Qty,
+                    'DestinationCountry'  => $request->Destination ?? $existingV?->DestinationCountry,
+                    'GAC'                 => $request->Gac_date ?? $existingV?->GAC,
+                    'FinalDestination'    => $request->Destination ?? $existingV?->FinalDestination,
                     'status'              => 'Success',
-                    'cari'                => $request->Buyer . ' ' . $request->Order_code . ' ' . $request->PO,
+                    'cari'                => ($request->Buyer ?? $existingV?->Buyer)
+                                            . ' ' . $request->Order_code . ' '
+                                            . ($request->PO ?? $existingV?->PurchaseOrderNumber),
                 ]
             );
 
@@ -180,7 +197,7 @@ class WeightController extends Controller
                 'success' => true,
                 'message' => $berat > 0
                     ? "Data berhasil disimpan dengan berat: {$berat} kg!"
-                    : "Data berhasil disimpan (tanpa berat timbangan)"
+                    : "Data berhasil disimpan (tanpa berat timbangan)",
             ]);
 
         } catch (\Exception $e) {

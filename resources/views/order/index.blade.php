@@ -15,12 +15,13 @@
         <section class="row">
             <div class="card">
                 <div class="card-body">
-                    {{-- <div class="tambah mb-2">
-                        <a href="{{ url('user/ordersheet-view/create') }}" class="btn btn-info">
+                    <div class="tambah mb-2">
+                        {{-- <a href="{{ url('user/ordersheet-view/create') }}" class="btn btn-info">
                             <i class="fas fa-plus"></i> Tambah Data
-                        </a>
+                        </a> --}}
                     </div>
-                    <hr> --}}
+                    <hr>
+
 
                     {{-- PENCARIAN --}}
                     <div class="row g-3 align-items-end mb-3">
@@ -355,7 +356,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr style="height: 90px;">
+                                                    <tr style="height: 100px;">
                                                         <td class="p-1 position-relative align-bottom">
                                                             <input type="text"
                                                                 class="form-control-plaintext text-center fw-semibold user-name"
@@ -390,13 +391,24 @@
                                     <div class="col-12 col-md-6">
                                         <div class="card border-0 shadow-sm h-100">
                                             <div class="card-body p-3">
-                                                <!-- No. Carton -->
+                                                <!-- No. Carton + Tombol Scan Barcode -->
                                                 <div class="mb-3">
                                                     <label for="no_box"
-                                                        class="form-label fw-semibold small text-muted">No.
-                                                        Carton</label>
-                                                    <input type="text" class="form-control form-control-sm"
-                                                        name="no_box" id="no_box" placeholder="A001" required>
+                                                        class="form-label fw-semibold small text-muted">
+                                                        No. Carton <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            name="no_box" id="no_box" placeholder="A001"
+                                                            required>
+                                                        <button class="btn btn-outline-warning btn-sm" type="button"
+                                                            id="btnScanBarcode">
+                                                            <i class="fa-solid fa-barcode"></i>
+                                                            <span class="d-none d-sm-inline"> Scan</span>
+                                                        </button>
+                                                    </div>
+                                                    <small class="text-muted">Tekan tombol scan atau ketik
+                                                        manual</small>
                                                 </div>
 
                                                 <div class="row g-2">
@@ -452,7 +464,7 @@
                                                         style="font-size: 3.5rem;">
                                                         0.00
                                                     </h1>
-                                                    <p class="text-muted small mb-1">kg</p>
+                                                    <p class="text-muted small mb-1">Kg</p>
                                                     <small id="previewStatus"
                                                         class="text-warning d-block fw-bold">Menunggu data...</small>
                                                 </div>
@@ -461,6 +473,10 @@
                                                 <div class="mt-3 d-none d-md-block">
                                                     <small class="text-muted">Pastikan timbangan stabil sebelum
                                                         simpan</small>
+                                                    <hr>
+                                                    <button class="btn btn-sm btn-primary" id="tare">
+                                                        <i class="fa-solid fa-thumbtack"></i> Stabilkan
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -479,6 +495,38 @@
                     <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
                         <i class="fa-solid fa-circle-xmark"></i> Tutup
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="scannerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header text-dark">
+                    <h6 class="modal-title fw-bold">
+                        <i class="fa-solid fa-camera me-2"></i>Scan Barcode Carton
+                    </h6>
+                    <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-4 bg-dark">
+                    <div id="reader"
+                        style="width: 100%; max-width: 400px; margin: 0 auto; border: 4px solid #0d6efd; border-radius: 12px; overflow: hidden;">
+                    </div>
+
+                    <p class="text-white mb-3 fw-semibold mt-3" id="scanStatus">Memuat kamera...</p>
+
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <button type="button" class="btn btn-warning btn-sm px-3 d-none" id="torchToggle">
+                            <i class="fa-solid fa-lightbulb me-1"></i> Nyalakan Lampu
+                        </button>
+                        <button type="button" class="btn btn-info btn-sm px-3 d-none" id="switchCamera">
+                            <i class="fa-solid fa-camera-rotate me-1"></i> Ganti Kamera
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm px-3" data-bs-dismiss="modal">
+                            <i class="fa-solid fa-xmark me-1"></i> Batal
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -537,8 +585,11 @@
 
     @push('js')
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        {{-- <script src="{{ asset('assets/js/bootstrap/bootstrap.bundle.js') }}"></script>
+        <script src="{{ asset('assets/js/extensions/sweetalert2.js') }}"></script> --}}
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
         <script>
             // Hari
             function updateDateTime() {
@@ -913,64 +964,168 @@
                 });
             });
 
-            // === LOAD RIWAYAT (DIBUAT BARU) ===
-            async function loadRiwayat() {
-                if (!currentId) return;
+            document.addEventListener('DOMContentLoaded', function() {
+                const scanButton = document.getElementById('btnScanBarcode');
+                if (!scanButton) return;
 
-                try {
-                    const res = await fetch(`/api/timbang/riwayat/${currentId}`);
-                    const json = await res.json();
+                let scannerInstance = null;
 
-                    const tbody = document.querySelector('#cartonWeightTable tbody');
-                    if (!tbody) return;
-
-                    tbody.innerHTML = '';
-
-                    if (json.success && json.data.length > 0) {
-                        // Kelompokkan data berdasarkan tanggal (misalnya created_at)
-                        const grouped = {};
-                        json.data.forEach(item => {
-                            const date = item.created_at ? item.created_at.split(' ')[0] : 'Unknown';
-                            if (!grouped[date]) grouped[date] = [];
-                            grouped[date].push(item.berat);
-                        });
-
-                        Object.entries(grouped).forEach(([date, weights]) => {
-                            // Buat baris baru
-                            const total = weights.reduce((a, b) => a + parseFloat(b || 0), 0);
-                            const pad = Array(10).fill('-'); // isi 10 kolom
-                            weights.forEach((w, i) => {
-                                if (i < 10) pad[i] = w;
-                            });
-
-                            const row1 = document.createElement('tr');
-                            row1.innerHTML = `
-                                <td rowspan="2" style="vertical-align: middle;">${date}</td>
-                                ${pad.map(() => '<td>Ctn</td>').join('')}
-                                <td rowspan="2">${total.toFixed(2)}</td>
-                                <td rowspan="2"></td>
-                            `;
-
-                            const row2 = document.createElement('tr');
-                            row2.classList.add('weight-row');
-                            row2.innerHTML = pad.map(w => `<td>${w}</td>`).join('');
-
-                            tbody.appendChild(row1);
-                            tbody.appendChild(row2);
-                        });
-
-                    } else {
-                        tbody.innerHTML = `
-                        <tr>
-                            <td colspan="13" class="text-center text-muted py-3">
-                                Belum ada data timbangan
-                            </td>
-                        </tr>`;
-                    }
-                } catch (err) {
-                    console.warn('Gagal load riwayat:', err);
+                function isMobile() {
+                    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
                 }
-            }
+
+                function startScanner() {
+                    const modalEl = document.getElementById('scannerModal');
+                    if (!modalEl) return alert('Modal scanner tidak ditemukan!');
+
+                    const modal = new bootstrap.Modal(modalEl, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    const statusEl = document.getElementById('scanStatus');
+                    const torchBtn = document.getElementById('torchToggle');
+                    const switchBtn = document.getElementById('switchCamera');
+
+                    let currentCamera = 'environment';
+                    let torchOn = false;
+                    const mobile = isMobile();
+
+                    modal.show();
+
+                    const onSuccess = (decodedText) => {
+                        const text = decodedText.trim();
+                        if (!text) return;
+
+                        const noBoxInput = document.getElementById('no_box');
+                        if (noBoxInput) {
+                            noBoxInput.value = text;
+                            noBoxInput.dispatchEvent(new Event('input', {
+                                bubbles: true
+                            }));
+                        }
+
+                        statusEl.innerHTML =
+                            `<span class="text-success fw-bold">✓ Berhasil Scan!</span><br><small class="text-light">${text}</small>`;
+                        setTimeout(() => {
+                            stopScanner();
+                            modal.hide();
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Scan Berhasil!',
+                                    text: text,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                alert(`Scan berhasil: ${text}`);
+                            }
+                        }, 800);
+                    };
+
+                    const onError = () => {};
+
+                    const stopScanner = () => {
+                        if (scannerInstance) {
+                            scannerInstance.stop().catch(() => {});
+                            scannerInstance = null;
+                        }
+                        torchOn = false;
+                    };
+
+                    modalEl.addEventListener('shown.bs.modal', () => {
+                        statusEl.textContent = 'Memuat kamera...';
+                        torchBtn.disabled = true;
+                        torchBtn.classList.add('d-none');
+
+                        const html5QrCode = new Html5Qrcode("reader");
+
+                        const config = {
+                            fps: 10,
+                            qrbox: {
+                                width: 250,
+                                height: 250
+                            },
+                            aspectRatio: 1,
+                            disableFlip: false,
+                            formatsToSupport: [
+                                Html5QrcodeSupportedFormats.CODE_128,
+                                Html5QrcodeSupportedFormats.CODE_39,
+                                Html5QrcodeSupportedFormats.EAN_13,
+                                Html5QrcodeSupportedFormats.EAN_8,
+                                Html5QrcodeSupportedFormats.UPC_A
+                            ],
+                            useBarCodeDetectorIfSupported: false
+                        };
+
+                        html5QrCode.start({
+                                facingMode: currentCamera
+                            }, config, onSuccess, onError)
+                            .then(() => {
+                                scannerInstance = html5QrCode;
+                                statusEl.innerHTML =
+                                    '<span class="text-info">🎯 Arahkan kamera ke barcode...</span>';
+
+                                if (mobile) {
+                                    torchBtn.classList.remove('d-none');
+                                    torchBtn.disabled = false;
+                                    setupTorch();
+                                }
+
+                                Html5Qrcode.getCameras().then(cameras => {
+                                    if (cameras && cameras.length > 1) {
+                                        switchBtn.classList.remove('d-none');
+                                    }
+                                }).catch(() => {});
+
+                                switchBtn.onclick = () => {
+                                    currentCamera = currentCamera === 'environment' ? 'user' :
+                                        'environment';
+                                    stopScanner();
+                                    setTimeout(() => {
+                                        html5QrCode.start({
+                                                facingMode: currentCamera
+                                            }, config, onSuccess, onError)
+                                            .then(() => scannerInstance = html5QrCode);
+                                    }, 500);
+                                };
+                            })
+                            .catch(err => {
+                                console.error('Error start scanner:', err);
+                                statusEl.innerHTML =
+                                    `<span class="text-danger">❌ Gagal akses kamera:<br><small>${err.message || err}</small></span>`;
+                            });
+                    });
+
+                    function setupTorch() {
+                        torchBtn.onclick = () => {
+                            if (!scannerInstance) return;
+                            torchOn = !torchOn;
+                            scannerInstance.applyVideoConstraints({
+                                    advanced: [{
+                                        torch: torchOn
+                                    }]
+                                })
+                                .then(() => {
+                                    torchBtn.innerHTML = torchOn ? '💡 Matikan Lampu' : '💡 Nyalakan Lampu';
+                                    torchBtn.classList.toggle('btn-danger', torchOn);
+                                    torchBtn.classList.toggle('btn-warning', !torchOn);
+                                }).catch(() => {
+                                    torchOn = false;
+                                    torchBtn.innerHTML = '🚫 Lampu Tidak Didukung';
+                                    torchBtn.className = 'btn btn-secondary btn-sm px-3';
+                                    torchBtn.disabled = true;
+                                });
+                        };
+                    }
+
+                    modalEl.addEventListener('hidden.bs.modal', () => stopScanner(), {
+                        once: true
+                    });
+                }
+
+                scanButton.addEventListener('click', startScanner);
+            });
 
             btnSimpan.addEventListener('click', async () => {
                 if (!latestPreview || !currentId) return;

@@ -30,6 +30,30 @@ class UserSeeder extends Seeder
                 'role' => 'user',
                 'status' => 'Aktif',
             ],
+            [
+                'id' => 3,
+                'username' => 'Bayu',
+                'line' => 'LINE002',
+                'password' => bcrypt('1'),
+                'role' => 'user',
+                'status' => 'Aktif',
+            ],
+            [
+                'id' => 4,
+                'username' => 'Dani',
+                'line' => 'LINE003',
+                'password' => bcrypt('1'),
+                'role' => 'user',
+                'status' => 'Aktif',
+            ],
+            [
+                'id' => 5,
+                'username' => 'Denis',
+                'line' => 'LINE004',
+                'password' => bcrypt('1'),
+                'role' => 'user',
+                'status' => 'Aktif',
+            ],
         ];
 
         foreach ($data as $key => $value) {

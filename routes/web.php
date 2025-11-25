@@ -4,6 +4,11 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Api\OrderSheetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Ordersheet\PackageController;
+use App\Http\Controllers\Update\Admin\DeviceController;
+use App\Http\Controllers\Update\Admin\FirmwareController;
+use App\Http\Controllers\Update\User\SettingController;
+use App\Http\Controllers\Update\User\SwitchController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -18,26 +23,47 @@ Route::get('lupa-password', [LoginController::class, 'lupa'])->name('lupa.passwo
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::middleware(['auth', 'role:admin'])->group(function(){
-    Route::prefix('admin')->group(function(){
-        Route::get('/dashboard',[DashboardController::class, 'index'])->name('admin.view');
-
-        Route::get('/ordersheet-index',[OrderSheetController::class, 'index'])->name('admin.view.index');
-    });
+// Profiles
+Route::prefix('setting')->group(function(){
+    Route::get('/profile', [SettingController::class, 'setting'])->name('setting.profile');
+    Route::put('/profile/update/{id}', [SettingController::class, 'update'])->name('profile.update');
 });
 
-Route::middleware(['auth', 'role:user'])->group(function(){
-    Route::prefix('user')->group(function(){
-        Route::get('/home',[DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function(){
+    Route::get('/dashboard',[DashboardController::class, 'index'])->name('admin.view');
 
-        Route::get('/ordersheet-view',[OrderSheetController::class, 'index'])->name('order.view');
+    // master
+    Route::get('/view-data', [DeviceController::class, 'index'])->name('admin.view-data');
 
-        // tambah data ordersheet
-        Route::get('/ordersheet-view/create', [OrderSheetController::class, 'create'])->name('ordersheet.create');
-        Route::post('/ordersheet/store', [OrderSheetController::class, 'store'])->name('ordersheet.store');
+    Route::get('/ordersheet-index',[OrderSheetController::class, 'index'])->name('admin.view.index');
+    
+    // Update ESP
+    Route::post('/firmware/upload', [FirmwareController::class, 'upload'])
+        ->name('admin.firmware.upload');
 
-        // cetak timbangan
-        Route::get('/order/print', [OrderSheetController::class, 'print'])->name('order.print');
-        Route::get('/print/{buyer}', [OrderSheetController::class, 'print'])->name('order.print.buyer');
-    });
+    Route::post('/firmware/{firmware}/post', [FirmwareController::class, 'postToUsers'])
+        ->name('admin.firmware.post');
+});
+
+Route::middleware(['auth', 'role:user'])->prefix('user')->group(function(){
+    Route::get('/home',[DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/ordersheet-view',[OrderSheetController::class, 'index'])->name('order.view');
+
+    // tambah data ordersheet
+    Route::get('/ordersheet-view/create', [OrderSheetController::class, 'create'])->name('ordersheet.create');
+    Route::post('/ordersheet/store', [OrderSheetController::class, 'store'])->name('ordersheet.store');
+
+    // cetak timbangan
+    Route::get('/order/print', [OrderSheetController::class, 'print'])->name('order.print');
+    Route::get('/print/{buyer}', [OrderSheetController::class, 'print'])->name('order.print.buyer');
+
+    // package
+    Route::get('/ordersheet-package', [PackageController::class, 'getData'])->name('package.ordersheet');
+
+    Route::get('/package-view',[PackageController::class, 'index'])->name('package.view');
+
+    Route::get('/devices/available', [SwitchController::class, 'available'])->name('login.devices.available');
+
+    Route::post('/devices/switch', [SwitchController::class, 'switch'])->name('login.devices.switch');
 });
