@@ -60,6 +60,7 @@ Route::middleware(['auth', 'role:user'])->prefix('user')->group(function(){
 
     // package
     Route::get('/ordersheet-package', [PackageController::class, 'getData'])->name('package.ordersheet');
+    Route::get('/package/search', [PackageController::class, 'apiSearch']);
 
     Route::get('/package-view',[PackageController::class, 'index'])->name('package.view');
 

@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('ordersheet_packageweights', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_user')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('id_device')->nullable()->constrained('devices')->onDelete('set null');
             $table->foreignId('id_package')
                 ->constrained('ordersheet_packages')
                 ->onDelete('cascade');

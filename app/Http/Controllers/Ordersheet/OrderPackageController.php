@@ -18,7 +18,7 @@ class OrderPackageController extends Controller
 
         $esp_id = $request->esp_id;
 
-        Cache::put("timbangan_live_{$esp_id}", floatval($request->berat), now()->addSeconds(2));
+        Cache::put("timbangan_live_{$esp_id}", floatval($request->berat), now()->addMinutes(7));
 
         return response()->json(['status' => 'ok']);
     }
@@ -34,11 +34,12 @@ class OrderPackageController extends Controller
             ], 400);
         }
 
-        $berat = Cache::get("timbangan_live_{$esp_id}", 0);
+        // JANGAN PAKAI DEFAULT 0 → pakai null
+        $berat = Cache::get("timbangan_live_{$esp_id}"); // <-- hapus , 0
 
         return response()->json([
             'success' => true,
-            'berat' => $berat
+            'berat'   => $berat !== null ? floatval($berat) : null   // pastikan null kalau belum ada
         ]);
     }
 

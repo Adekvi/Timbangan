@@ -29,10 +29,10 @@
                         </button>
 
                         <!-- WIFI Setting -->
-                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#wifi">
+                        {{-- <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#wifi">
                             <i class="fa-solid fa-wifi me-1"></i>
                             Wifi
-                        </button>
+                        </button> --}}
 
                         <!-- Device Selector -->
                         <div class="dropdown">
@@ -121,11 +121,11 @@
                                     <th>Name</th>
                                     <th>Type</th>
                                     <th>Size</th>
-                                    <th>Detail</th>
                                     <th>Stitching</th>
                                     <th>Lining</th>
-                                    <th>Berat Terakhir (kg)</th>
-                                    <th>Aksi</th>
+                                    <th>Tanggal</th>
+                                    <th>Berat Terakhir (g)</th>
+                                    {{-- <th>Aksi</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -136,20 +136,20 @@
                                         <td>{{ $package->name }}</td>
                                         <td>{{ $package->leather_type }}</td>
                                         <td>{{ $package->size }}</td>
-                                        <td>{{ $package->description }}</td>
                                         <td>{{ $package->stitching_type }}</td>
                                         <td>{{ $package->lining_material }}</td>
-                                        <td>{{ $lastWeight->weight ?? '-' }}</td>
-                                        <td>
+                                        <td>{{ date('d/m/Y', strtotime($package->created_at)) }}</td>
+                                        <td>{{ isset($lastWeight->weight) ? $lastWeight->weight + 0 : '-' }} g</td>
+                                        {{-- <td>
                                             <button class="btn btn-sm btn-outline-primary btn-timbang"
                                                 data-id="{{ $package->id }}">
                                                 <i class="fa-solid fa-weight-scale"></i> Timbang
                                             </button>
-                                        </td>
+                                        </td> --}}
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="8" class="text-center text-muted py-4">
                                             Belum ada data package.
                                         </td>
                                     </tr>
@@ -361,10 +361,10 @@
 
     @push('js')
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        {{-- <script src="{{ asset('assets/js/bootstrap/bootstrap.bundle.js') }}"></script>
-        <script src="{{ asset('assets/js/extensions/sweetalert2.js') }}"></script> --}}
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="{{ asset('assets/js/bootstrap/bootstrap.bundle.js') }}"></script>
+        <script src="{{ asset('assets/js/sweetalert2/sweetalert2.all.min.js') }}"></script>
+        {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
 
         <script>
             // Hari
@@ -417,7 +417,7 @@
 
                 spinner.style.display = 'inline-block';
                 tableBody.innerHTML = `<tr><td colspan="9" class="text-center">Memuat...</td></tr>`;
-                pagination.innerHTML = '';
+                if (pagination) pagination.innerHTML = '';
 
                 try {
                     const params = new URLSearchParams({
@@ -427,12 +427,23 @@
                     if (start) params.append('start_date', start);
                     if (end) params.append('end_date', end);
 
-                    const res = await fetch(`/ordersheet-package?${params}`);
-                    const json = await res.json();
+                    const response = await fetch(`/user/package/search?${params}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                        }
+                    });
 
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const json = await response.json();
                     spinner.style.display = 'none';
 
-                    if (json.success && json.data.length > 0) {
+                    if (json.success && json.data && json.data.length > 0) {
                         renderTable(json.data, json.current_page);
                         renderPagination(json.current_page, json.last_page);
                     } else {
@@ -441,30 +452,45 @@
                     }
                 } catch (err) {
                     spinner.style.display = 'none';
-                    tableBody.innerHTML = `<tr><td colspan="9" class="text-danger text-center">Terjadi kesalahan</td></tr>`;
-                    console.error(err);
+                    tableBody.innerHTML =
+                        `<tr><td colspan="9" class="text-danger text-center">Gagal memuat data (401/404)</td></tr>`;
+                    console.error('Fetch error:', err);
                 }
             }
 
             function renderTable(data, currentPage) {
+                if (!data || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Tidak ada data</td></tr>`;
+                    return;
+                }
+
                 let rows = '';
                 data.forEach((item, i) => {
+                    const no = (i + 1) + (currentPage - 1) * 10;
+
+                    const berat = item.last_weight ?
+                        parseFloat(item.last_weight).toFixed(0) + ' g' :
+                        '-';
+
+                    // Format tanggal dari created_at
+                    const createdAt = item.created_at ?
+                        new Date(item.created_at).toLocaleDateString('id-ID') :
+                        '-';
+
                     rows += `
-                    <tr>
-                        <td>${(i + 1) + (currentPage - 1) * 10}</td>
-                        <td>${item.name || '-'}</td>
-                        <td>${item.leather_type || '-'}</td>
-                        <td>${item.size || '-'}</td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.stitching_type || '-'}</td>
-                        <td>${item.lining_material || '-'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary btn-timbang" data-item='${JSON.stringify(item)}'>
-                                <i class="fa-solid fa-weight-scale"></i> Timbang
-                            </button>
-                        </td>
-                    </tr>`;
+                        <tr>
+                            <td>${no}</td>
+                            <td>${item.name || '-'}</td>
+                            <td>${item.leather_type || '-'}</td>
+                            <td>${item.size || '-'}</td>
+                            <td>${item.stitching_type || '-'}</td>
+                            <td>${item.lining_material || '-'}</td>
+                            <td>${createdAt}</td>
+                            <td>${berat}</td>
+                        </tr>
+                    `;
                 });
+
                 tableBody.innerHTML = rows;
             }
 

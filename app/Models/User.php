@@ -50,4 +50,20 @@ class User extends Authenticatable
     public function devices(){
         return $this->hasMany(Device::class);
     }
+
+    public function ordersheets(){
+        return $this->hasMany(Ordersheet::class, 'id_user');
+    }
+
+    public function timbanganRiwayats(){
+        return $this->hasMany(Timbangan_riwayat::class, 'id_user');
+    }
+
+    public function ordersheetPackages(){
+        return $this->hasMany(OrdersheetPackage::class, 'id_user');
+    }
+
+    public function ordersheetPackageWeights(){
+        return $this->hasMany(OrdersheetPackageweight::class, 'id_user');
+    }
 }

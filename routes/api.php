@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\WeightController;
 use App\Http\Controllers\Ordersheet\OrderPackageController;
 use App\Http\Controllers\Ordersheet\PackageController;
 use App\Http\Controllers\Update\Admin\DeviceController;
-use App\Http\Controllers\Update\User\SwitchController;
 use App\Http\Controllers\Update\User\WifiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;

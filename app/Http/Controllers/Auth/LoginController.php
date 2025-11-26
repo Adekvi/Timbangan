@@ -121,26 +121,29 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        // Lepaskan device yang sedang dipakai user ini
-        $device = Device::where('user_id', Auth::id())->first();
-        if ($device) {
-            $device->user_id = null;
-            $device->status = 'online'; // bisa juga 'offline' tergantung kebutuhan
-            $device->last_online_at = now();
-            $device->save();
+        // Lepaskan device jika ada
+        if (Auth::check()) {
+            $device = Device::where('user_id', Auth::id())->first();
+            if ($device) {
+                $device->update([
+                    'user_id' => null,
+                    'status' => 'online',
+                    'last_online_at' => now(),
+                ]);
+            }
         }
 
-        // Hapus session device
-        $request->session()->forget(['selected_device', 'selected_esp_id', 'selected_device_name']);
-
+        // Logout user terlebih dahulu
         Auth::logout();
+
+        // Hancurkan seluruh session lama
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Hapus cookie ingatan device saat logout
+        // Hapus cookie terkait
         Cookie::queue(Cookie::forget('last_esp_id'));
 
-        return redirect('/login');
+        return redirect()->route('login');
     }
 
 }

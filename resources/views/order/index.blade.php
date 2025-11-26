@@ -585,10 +585,10 @@
 
     @push('js')
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        {{-- <script src="{{ asset('assets/js/bootstrap/bootstrap.bundle.js') }}"></script>
-        <script src="{{ asset('assets/js/extensions/sweetalert2.js') }}"></script> --}}
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="{{ asset('assets/js/bootstrap/bootstrap.bundle.js') }}"></script>
+        <script src="{{ asset('assets/js/sweetalert2/sweetalert2.all.min.js') }}"></script>
+        {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
         <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
         <script>
             // Hari
